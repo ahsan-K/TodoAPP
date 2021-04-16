@@ -1,0 +1,113 @@
+import React, {useEffect, useState} from 'react';
+import {
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  Text,
+  View,
+} from 'react-native';
+import styles from './styles';
+import Components from '../../components';
+import PushNotificationIOS from "@react-native-community/push-notification-ios";
+import PushNotification from "react-native-push-notification";
+
+
+export default ({navigation}) => {
+    const [values, setValues] = useState({email:"", password: ""})
+    const [Token, setToken] = useState("")
+
+    const handleSubmit = () => {
+      navigation.replace('Tasks')
+      console.log(values)
+    }
+    useEffect(()=>{
+      // Must be outside of any component LifeCycle (such as `componentDidMount`).
+      PushNotification.configure({
+        // (optional) Called when Token is generated (iOS and Android)
+        onRegister: function (token) {
+          console.log("TOKEN:", token);
+          setToken(token)
+        },
+      
+        // (required) Called when a remote is received or opened, or local notification is opened
+        onNotification: function (notification) {
+          console.log("NOTIFICATION:", notification);
+          alert(notification.message)
+      
+          // process the notification
+      
+          // (required) Called when a remote is received or opened, or local notification is opened
+          notification.finish(PushNotificationIOS.FetchResult.NoData);
+        },
+      
+        // (optional) Called when Registered Action is pressed and invokeApp is false, if true onNotification will be called (Android)
+        onAction: function (notification) {
+          console.log("ACTION:", notification.action);
+          console.log("NOTIFICATION:", notification);
+      
+          // process the action
+        },
+      
+        // (optional) Called when the user fails to register for remote notifications. Typically occurs when APNS is having issues, or the device is a simulator. (iOS)
+        onRegistrationError: function(err) {
+          console.error(err.message, err);
+        },
+      
+        // IOS ONLY (optional): default: all - Permissions to register.
+        permissions: {
+          alert: true,
+          badge: true,
+          sound: true,
+        },
+
+        // senderd:"",
+      
+        // Should the initial notification be popped automatically
+        // default: true
+        popInitialNotification: true,
+        // senderID: "",
+
+      
+        /**
+         * (optional) default: true
+         * - Specified if permissions (ios) and token (android and ios) will requested or not,
+         * - if not, you must call PushNotificationsHandler.requestPermissions() later
+         * - if you are not using remote notification or do not have Firebase installed, use this:
+         *     requestPermissions: Platform.OS === 'ios'
+         */
+        requestPermissions: true,
+      });
+    },[])
+    return (
+      <SafeAreaView style={styles.container}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{width:'100%', paddingHorizontal:20}}>
+            <Components.StyleText title="Login"/>
+            <Components.Input 
+              placeholder="Email"
+              length={15}
+              value={values.email}
+              onChange={(x)=>setValues({...values, email:x})}
+              type={'email'}
+              defaultVal=''
+              containerStyle={{marginBottom:20}}
+              keyboardType="default"
+            />
+
+            <Components.Input 
+              placeholder="Password"
+              length={15}
+              value={values.password}
+              onChange={(x)=>setValues({...values, password:x})}
+              type={'password'}
+              defaultVal=''
+              containerStyle={{marginBottom:100}}
+              keyboardType="default"
+            />
+
+          <Components.Button onPress={handleSubmit} title="Log In"/>
+          <Components.StyleText textStyle={{fontSize:14, marginTop:10}} title="Forgot your password?"/>
+
+        </ScrollView>
+      </SafeAreaView>
+    );
+};
